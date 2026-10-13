@@ -1,0 +1,155 @@
+NAMMAMART DATA PROFILING
+Source directory: C:\Users\chand\IIT_Roorkie_CEC_Futurenece_Data_Pipeline_to_ML_Model\include\data\nammamart
+
+================================================================================
+FILE: orders.csv
+================================================================================
+Rows: 2412
+Columns: 13
+Column names: ['order_id', 'order_ts', 'customer_id', 'store_id', 'product_id', 'quantity', 'unit_price', 'discount_pct', 'order_amount', 'payment_mode', 'order_status', 'channel', 'delivery_minutes']
+
+Missing / blank values:
+  order_ts: 1
+  customer_id: 18
+  delivery_minutes: 164
+
+Duplicate key values:
+  order_id: 24 rows with duplicate keys; 12 distinct duplicate keys
+
+Numeric ranges:
+  quantity: min=-3, max=5, unparseable_nonblank=0
+  unit_price: min=10.0, max=883.0, unparseable_nonblank=0
+  discount_pct: min=0, max=250, unparseable_nonblank=0
+  order_amount: min=-1593.0, max=9576.0, unparseable_nonblank=0
+  delivery_minutes: min=8.0, max=1440.0, unparseable_nonblank=0
+
+Date ranges:
+  order_ts: min=2026-09-01 06:30:15+00:00, max=2027-01-01 09:00:00+00:00, unparseable_nonblank=5
+
+Distinct category values:
+  order_status: ['CANCELLED', 'DELIVERED', 'Pending??', 'RETURNED', 'delivered']
+  payment_mode: ['CARD', 'Card', 'Cash on Delivery', 'Cashh', 'UPI', 'Wallet', 'cod', 'upi']
+  channel: ['App', 'Web']
+
+================================================================================
+FILE: payments.csv
+================================================================================
+Rows: 2228
+Columns: 7
+Column names: ['payment_id', 'order_id', 'payment_ts', 'payment_mode', 'amount_paid', 'payment_status', 'gateway_ref']
+
+Missing / blank values:
+  gateway_ref: 301
+
+Duplicate key values:
+  payment_id: 8 rows with duplicate keys; 4 distinct duplicate keys
+
+Numeric ranges:
+  amount_paid: min=-1593.0, max=9576.0, unparseable_nonblank=0
+
+Date ranges:
+  payment_ts: min=2026-09-01 06:30:24+00:00, max=2027-01-01 09:01:46+00:00, unparseable_nonblank=0
+
+Distinct category values:
+  payment_mode: ['CARD', 'Card', 'Cash on Delivery', 'Cashh', 'UPI', 'Wallet', 'cod', 'upi']
+  payment_status: ['FAILED', 'REFUNDED', 'SUCCESS']
+
+================================================================================
+FILE: customers.csv
+================================================================================
+Rows: 405
+Columns: 10
+Column names: ['customer_id', 'full_name', 'email', 'phone', 'city', 'area', 'pincode', 'signup_date', 'loyalty_tier', 'is_active']
+
+Missing / blank values:
+  city: 6
+
+Duplicate key values:
+  customer_id: 10 rows with duplicate keys; 5 distinct duplicate keys
+
+Numeric ranges:
+
+Date ranges:
+  signup_date: min=2024-06-01 00:00:00+00:00, max=2027-01-05 00:00:00+00:00, unparseable_nonblank=0
+
+Distinct category values:
+  loyalty_tier: ['BRONZE', 'Bronze', 'Gold', 'Platinum', 'SILVER', 'Silver', 'bronze']
+  is_active: ['N', 'Y']
+
+================================================================================
+FILE: products.csv
+================================================================================
+Rows: 152
+Columns: 10
+Column names: ['product_id', 'product_name', 'category', 'sub_category', 'brand', 'mrp', 'cost_price', 'unit', 'is_perishable', 'launch_date']
+
+Missing / blank values:
+  category: 3
+
+Duplicate key values:
+  product_id: 4 rows with duplicate keys; 2 distinct duplicate keys
+
+Numeric ranges:
+  mrp: min=-203.0, max=883.0, unparseable_nonblank=0
+  cost_price: min=6.79, max=631.79, unparseable_nonblank=0
+
+Date ranges:
+  launch_date: min=2023-01-03 00:00:00+00:00, max=2025-09-20 00:00:00+00:00, unparseable_nonblank=0
+
+Distinct category values:
+  category: ['', 'Dairy & Bakery', 'Fruits & Vegetables', 'Household', 'Personal Care', 'Snacks & Beverages', 'Staples']
+  sub_category: ['Atta', 'Biscuits', 'Bread', 'Cheese', 'Chips', 'Cleaners', 'Curd & Paneer', 'Dal', 'Detergent', 'Fresh Fruits', 'Fresh Vegetables', 'Herbs', 'Kitchen Supplies', 'Milk', 'Oil', 'Oral Care', 'Rice', 'Shampoo', 'Soap', 'Soft Drinks', 'Tea & Coffee']
+  brand: ['Annapurna Mills', 'BrewHouse', 'Chandana', 'CleanPro', 'CowBell', 'CrunchCo', 'DalBazaar', 'Desi Farms', 'FarmFresh', 'GoldenGrain', 'GreenLeaf', 'HerbVeda', 'Kaveri Dairy', 'MilkWay', 'OvenCraft', 'PureGlow', 'ScrubMate', 'ShineAll', 'SmileBright', 'SnackSutra', 'SparkWash', 'SunPress', 'TeaTime']
+  unit: ['kg', 'pack', 'unit']
+  is_perishable: ['False', 'True']
+
+================================================================================
+FILE: stores.csv
+================================================================================
+Rows: 15
+Columns: 8
+Column names: ['store_id', 'store_name', 'zone', 'area', 'pincode', 'open_date', 'manager_name', 'capacity_orders_per_day']
+
+Missing / blank values:
+  zone: 1
+
+Duplicate key values:
+  store_id: 0 rows with duplicate keys; 0 distinct duplicate keys
+
+Numeric ranges:
+  capacity_orders_per_day: min=0, max=600, unparseable_nonblank=0
+
+Date ranges:
+  open_date: min=2024-02-14 00:00:00+00:00, max=2025-07-28 00:00:00+00:00, unparseable_nonblank=0
+
+Distinct category values:
+  zone: ['', 'East', 'North', 'South', 'West']
+
+================================================================================
+FILE: orders_2026-10-01_increment.csv
+================================================================================
+Rows: 160
+Columns: 13
+Column names: ['order_id', 'order_ts', 'customer_id', 'store_id', 'product_id', 'quantity', 'unit_price', 'discount_pct', 'order_amount', 'payment_mode', 'order_status', 'channel', 'delivery_minutes']
+
+Missing / blank values:
+
+Duplicate key values:
+  order_id: 0 rows with duplicate keys; 0 distinct duplicate keys
+
+Numeric ranges:
+  quantity: min=1, max=4, unparseable_nonblank=0
+  unit_price: min=10.0, max=883.0, unparseable_nonblank=0
+  discount_pct: min=0, max=20, unparseable_nonblank=0
+  order_amount: min=11.0, max=2052.0, unparseable_nonblank=0
+  delivery_minutes: min=8, max=34, unparseable_nonblank=0
+
+Date ranges:
+  order_ts: min=2026-09-01 09:38:13+00:00, max=2026-10-01 22:33:00+00:00, unparseable_nonblank=0
+
+Distinct category values:
+  order_status: ['DELIVERED', 'RETURNED']
+  payment_mode: ['Card', 'Cash on Delivery', 'UPI', 'Wallet']
+  channel: ['App']
+
+Profiling complete. Source files were not modified.
