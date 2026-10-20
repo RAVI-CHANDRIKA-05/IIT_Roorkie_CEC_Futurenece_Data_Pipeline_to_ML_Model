@@ -1,0 +1,7 @@
+file,total_records,passed_records,quarantined_records,run_timestamp
+orders.csv,2412,2205,207,2026-10-16 15:23:03
+payments.csv,2228,1919,309,2026-10-16 15:23:03
+customers.csv,405,385,20,2026-10-16 15:23:03
+products.csv,152,145,7,2026-10-16 15:23:03
+stores.csv,15,14,1,2026-10-16 15:23:03
+orders_2026-10-01_increment.csv,160,160,0,2026-10-16 15:23:03

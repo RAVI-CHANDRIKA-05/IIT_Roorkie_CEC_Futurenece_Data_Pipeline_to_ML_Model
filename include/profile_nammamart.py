@@ -148,7 +148,7 @@ def main():
             for filename in FILES:
                 profile_file(filename)
 
-            print("\nProfiling complete. Source files were not modified.")
+            print("\nProfiling complete.")
 
     print(f"Profiling complete. Output saved to: {OUTPUT_FILE}")
 
