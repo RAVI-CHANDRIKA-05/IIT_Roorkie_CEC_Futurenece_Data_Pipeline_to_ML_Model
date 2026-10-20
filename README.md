@@ -6,7 +6,10 @@ This project develops an ETL/ELT data pipeline for NammaMart Quick Commerce, cov
 
 ## Main Project Documentation
 
-**Start here:** [NammaMart – My Approach](Nammamart_Assignment_Approach_Chandrika.md)
+**Start here:** [NammaMart – My Approach](https://github.com/RAVI-CHANDRIKA-05/IIT_Roorkie_CEC_Futurenece_Data_Pipeline_to_ML_Model/blob/chandrika-project/assignment/Nammamart_Assignment_Approach_Chandrika.md)
+
+
+**Details on my submission here:** [NammaMart – My Submission](https://github.com/RAVI-CHANDRIKA-05/IIT_Roorkie_CEC_Futurenece_Data_Pipeline_to_ML_Model/blob/chandrika-project/assignment/SUBMISSION.md)
 
 This document explains the project architecture, design decisions, pipeline workflow, validation rules, and implementation approach.
 
