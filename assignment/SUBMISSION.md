@@ -100,7 +100,7 @@ Phase 8 — AUDIT (trigger_rule=ALL_DONE)
   write_run_audit  (pipeline_runs table)
 ```
 
-![Image 1](assignment/Images_Nammamart_Assignment/ETL_PIPELINE_SUCCESS_2026-10-22T150928.png)
+![](images/ETL_PIPELINE_SUCCESS_2026-10-22T150928.png)
 
 ### Key Design Decisions
 
@@ -108,7 +108,7 @@ Phase 8 — AUDIT (trigger_rule=ALL_DONE)
 - **PII masking in Python:** Email masked to `p***@domain.com`, phone to `******4321` before warehouse load.
 - **Quarantine:** Failed rows written to `include/quarantine/nammamart/<run_id>/` as CSV with `_failure_reasons` column.
 - **DQ results:** Every check logged to `dq_results` table with dimension, severity, rows_checked, rows_failed.
-![NammaMart Assignment Image](Images_Nammamart_Assignment/dq_results.png)
+![](images/dq_results.png)
 
 - **Star schema:** `etl_fact_orders` + `etl_dim_customer` + `etl_dim_product` + `etl_dim_store`.
 - **AI explainer:** Uses LangGraph (optional) — wrapped in `try/except ImportError` so pipeline works without it.
@@ -150,7 +150,7 @@ Phase 5 — AUDIT (trigger_rule=ALL_DONE)
   write_elt_audit  (pipeline_runs table)
 ```
 
-![NammaMart Assignment Image](Images_Nammamart_Assignment/ELT_PIPELINE_SUCCESS_2026-10-22T162256.png)
+![](images/ELT_PIPELINE_SUCCESS_2026-10-22T162256.png)
 
 After the ELT Run few other tables are created in the warehouse_chandrika.duckdb
 ELT may use separate raw/staging/mart tables.
@@ -175,11 +175,11 @@ ELT may use separate raw/staging/mart tables.
 
 ### Image showing run IDs, DAG IDs, row counts and run status for pipelines.
 
-![NammaMart Assignment Image](Images_Nammamart_Assignment/pipeline_runs.png)
+![](images/pipeline_runs.png)
 
 ### Table list showing the actual tables in warehouse_chandrika.duckdb warehouse.
 
-![NammaMart Assignment Image](Images_Nammamart_Assignment/Tables_in_warehouse_chandrika.png)
+![](images/Tables_in_warehouse_chandrika.png)
 
 ---
 
@@ -533,7 +533,7 @@ FROM etl_payment_reconciliation
 WHERE run_id = (SELECT MAX(run_id) FROM etl_payment_reconciliation)
 GROUP BY reconciliation_status;
 ```
-![NammaMart Assignment Image](Images_Nammamart_Assignment/ETL_payment_reconciliation.png)
+![](images/ETL_payment_reconciliation.png)
 
 ### Q5: Top 10 customers by spend (masked PII)
 ```sql
