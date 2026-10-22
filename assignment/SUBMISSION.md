@@ -558,25 +558,33 @@ Forward Deployed Engineer
 ```sql
 -- ETL
 SELECT * FROM etl_daily_zone_revenue ORDER BY order_date, zone;
+![](images/ETLB1.png)
 
 -- ELT
 SELECT * FROM mart_daily_zone_revenue ORDER BY order_date, zone;
 ```
+![](images/ELTB1.png)
+
 
 ### Q2: Revenue and gross margin by category
 ```sql
 -- ETL
 SELECT * FROM etl_category_margin ORDER BY total_revenue DESC;
+![](images/ETLB2.png)
 
 -- ELT
 SELECT * FROM mart_category_margin ORDER BY total_revenue DESC;
 ```
+![](images/ELTB2.png)
 
 ### Q3: Average delivery time per store, % within 15 min
 ```sql
 -- ELT
 SELECT * FROM mart_delivery_sla ORDER BY zone, avg_delivery_minutes;
+```
+![](images/ELTB3.png)
 
+```sql
 -- ETL (query directly)
 SELECT s.zone, s.store_name,
        COUNT(*) AS delivered_orders,
@@ -588,6 +596,7 @@ WHERE f.order_status = 'DELIVERED' AND f.delivery_minutes IS NOT NULL
 GROUP BY s.zone, s.store_name
 ORDER BY s.zone, avg_delivery_minutes;
 ```
+![](images/ETLB3.png)
 
 ### Q4: Revenue by payment mode, unreconciled amount
 ```sql
@@ -596,7 +605,10 @@ SELECT reconciliation_status, COUNT(*) AS count,
        SUM(amount_paid) AS total_paid, SUM(order_amount) AS total_order_amount
 FROM mart_payment_reconciliation
 GROUP BY reconciliation_status;
+```
+![](images/ELTB4.png)
 
+```sql
 -- ETL
 SELECT reconciliation_status, COUNT(*) AS count,
        SUM(amount_paid) AS total_paid, SUM(order_amount) AS total_order_amount
@@ -605,13 +617,14 @@ WHERE run_id = (SELECT MAX(run_id) FROM etl_payment_reconciliation)
 GROUP BY reconciliation_status;
 ```
 ![](images/ETL_payment_reconciliation.png)
+![](images/ETLB4.png)
 
 ### Q5: Top 10 customers by spend (masked PII)
 ```sql
 -- ELT
 SELECT * FROM mart_top_customers;
 ```
-![](images/mart_top_customers.png)
+![](images/ELTB5.png)
 
 ```sql
 -- ETL
@@ -624,12 +637,16 @@ GROUP BY c.customer_id, c.masked_email, c.masked_phone, c.loyalty_tier
 ORDER BY total_spend DESC
 LIMIT 10;
 ```
+![](images/ETLB5.png)
 
 ### Q6: Rows rejected today, by file and reason
 ```sql
 -- ELT
 SELECT * FROM mart_elt_dq_summary WHERE dq_status = 'FAIL' ORDER BY dataset;
+```
+![](images/ELTB6.png)
 
+```sql
 -- ETL
 SELECT dimension, severity, SUM(rows_failed) AS total_failed
 FROM dq_results
@@ -637,6 +654,7 @@ WHERE run_id = (SELECT MAX(run_id) FROM dq_results)
 GROUP BY dimension, severity
 ORDER BY total_failed DESC;
 ```
+![](images/ETLB6.png)
 
 ---
 
