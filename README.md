@@ -16,6 +16,8 @@ This document explains the project architecture, design decisions, pipeline work
 ## Project Files
 
 - `dags/` – Airflow DAGs for ETL and ELT workflows
+- `dags/nammamart_etl_chandrika.py` — ETL pipeline
+- `dags/nammamart_elt_chandrika.py` — ELT pipeline
 - `include/` – Extraction, validation, transformation, and supporting modules
 - `assignment/` – Submission report and relevant outputs
 
