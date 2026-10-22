@@ -99,7 +99,7 @@ Phase 7 — REPORT
 Phase 8 — AUDIT (trigger_rule=ALL_DONE)
   write_run_audit  (pipeline_runs table)
 ```
-
+### ETL Graph view with all green tasks
 ![](images/ETL_PIPELINE_SUCCESS_2026-10-22T150928.png)
 
 ### Key Design Decisions
@@ -118,7 +118,7 @@ After initial run, [('dq_results',), ('etl_category_margin',), ('etl_daily_zone_
 ### Initial Run: Details for tables in NammaMart DuckDB warehouse inside the running Airflow scheduler container. 
 ![](images/TabledetailsInitialrunetl.png)
 
-### Initial Run: Details for tables in NammaMart DuckDB warehouse inside the running Airflow scheduler container. 
+### Incremental Run: Details for tables in NammaMart DuckDB warehouse inside the running Airflow scheduler container. 
 ![](images/TabledetailsIncrementalrunetl.png)
 
 
@@ -136,7 +136,8 @@ After initial run, [('dq_results',), ('etl_category_margin',), ('etl_daily_zone_
 | `etl_payment_reconciliation` | 2,201 | 4,415 | +2,214 |
 | `pipeline_runs` | 1 | 2 | +1 |
 
-**Summary:** The incremental run added 150 rows to `etl_fact_orders` and created a second pipeline audit record. Dimension table counts remained unchanged. The daily zone revenue and data-quality tables increased, while payment reconciliation grew by 2,214 rows. These row counts demonstrate changes between runs but do not independently confirm data correctness or idempotency.
+**Summary:** 
+The incremental run added 150 rows to `etl_fact_orders` and created a second pipeline audit record. Dimension table counts remained unchanged. The daily zone revenue and data-quality tables increased, while payment reconciliation grew by 2,214 rows. These row counts demonstrate changes between runs but do not independently confirm data correctness or idempotency.
 ---
 
 ## Part B: ELT Pipeline
@@ -169,6 +170,7 @@ Phase 4 — INCREMENTAL (skipped on initial run)
 Phase 5 — AUDIT (trigger_rule=ALL_DONE)
   write_elt_audit  (pipeline_runs table)
 ```
+### ELT Graph view with all green tasks
 
 ![](images/ELT_PIPELINE_SUCCESS_2026-10-22T162256.png)
 
@@ -188,13 +190,6 @@ Phase 5 — AUDIT (trigger_rule=ALL_DONE)
 - **Marts rebuilt** after merge to reflect updated data.
 - **DQ in SQL:** Each staging table has `dq_status` (PASS/FAIL/WARN) and `failure_reason`.
 
-### Image showing run IDs, DAG IDs, row counts and run status for pipelines.
-For ETL 
-![](images/pipeline_runs.png)
-
-For ELT
-![](images/pipeline_runselt.png)
-
 ### Table list showing the actual tables in warehouse_chandrika.duckdb warehouse.
 
 After the ELT Run few other tables are created in the warehouse_chandrika.duckdb if it is not cleanded before ELT run.
@@ -202,14 +197,11 @@ ELT is using separate raw/staging/mart tables.
 
 [('dq_results',), ('etl_category_margin',), ('etl_daily_zone_revenue',), ('etl_dim_customer',), ('etl_dim_product',), ('etl_dim_store',), ('etl_fact_orders',), ('etl_payment_reconciliation',), ('mart_category_margin',), ('mart_daily_zone_revenue',), ('mart_delivery_sla',), ('mart_elt_dq_summary',), ('mart_payment_reconciliation',), ('mart_top_customers',), ('pipeline_runs',), ('raw_customers',), ('raw_orders',), ('raw_payments',), ('raw_products',), ('raw_stores',), ('stg_customers',), ('stg_orders',), ('stg_payments',), ('stg_products',), ('stg_stores',)]
 
-### Tables created in NammaMart DuckDB warehouse after ELT Initial run
-![](images/Tables_in_warehouse_chandrika.png)
-
-### Tables created and number of rows in NammaMart DuckDB warehouse after ELT Initial run
+### Initial Run: Tables created and number of rows in NammaMart DuckDB warehouse after ELT Initial run
 
 ![](images/Counts_from_ELT_Tables.png)
 
-### Tables created and number of rows in NammaMart DuckDB warehouse after ELT Incremental run
+### Incremental Run: Tables created and number of rows in NammaMart DuckDB warehouse after ELT Incremental run
 ![](images/TabledetailsInitialrunelt.png)
 
 
@@ -235,11 +227,16 @@ ELT is using separate raw/staging/mart tables.
 | `stg_products` | 150 | 150 | 0 |
 | `stg_stores` | 15 | 15 | 0 |
 
-### Summary
-
+**Summary:** 
 The initial ELT run created the raw, staging, and mart tables and recorded one pipeline execution. The incremental run increased `raw_orders` by 160 rows and `stg_orders` by 150 rows, while `mart_daily_zone_revenue` grew by 15 rows. The `pipeline_runs` table increased from one to two records, confirming that both executions were recorded. All other table row counts remained unchanged.
-
 These results demonstrate changes in warehouse row counts between the two runs. Further checks of record contents and duplicate handling would be needed to confirm data correctness and idempotency.
+
+### Image showing run IDs, DAG IDs, row counts and run status for pipelines.
+For ETL 
+![](images/pipeline_runs.png)
+
+For ELT
+![](images/pipeline_runselt.png)
 ---
 
 ## Part D: Data Quality Dimensions
@@ -613,8 +610,10 @@ GROUP BY reconciliation_status;
 ```sql
 -- ELT
 SELECT * FROM mart_top_customers;
+```
 ![](images/mart_top_customers.png)
 
+```sql
 -- ETL
 SELECT c.customer_id, c.masked_email, c.masked_phone, c.loyalty_tier,
        COUNT(*) AS total_orders, SUM(f.net_revenue) AS total_spend
