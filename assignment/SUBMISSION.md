@@ -122,7 +122,7 @@ After initial run, [('dq_results',), ('etl_category_margin',), ('etl_daily_zone_
 ![](images/TabledetailsIncrementalrunetl.png)
 
 
-### Warehouse Validation: Initial vs Incremental Run
+### ETL Warehouse Validation: Initial vs Incremental Run
 
 | Table Name | Initial Run | Incremental Run | Change |
 |---|---:|---:|---:|
@@ -232,6 +232,7 @@ ELT is using separate raw/staging/mart tables.
 The initial ELT run created the raw, staging, and mart tables and recorded one pipeline execution. The incremental run increased `raw_orders` by 160 rows and `stg_orders` by 150 rows, while `mart_daily_zone_revenue` grew by 15 rows. The `pipeline_runs` table increased from one to two records, confirming that both executions were recorded. All other table row counts remained unchanged.
 These results demonstrate changes in warehouse row counts between the two runs. Further checks of record contents and duplicate handling would be needed to confirm data correctness and idempotency.
 
+---
 ### Image showing run IDs, DAG IDs, row counts and run status for pipelines.
 
 **For ETL** 
@@ -547,6 +548,94 @@ Forward Deployed Engineer
 | 8 | Distribution drift | Check catches price anomaly | | | |
 | 9 | Freshness | Timeliness check warns | | | |
 | 10 | Recovery | Only failed + downstream re-run | | | |
+
+## ELT
+
+### Experiment 1: Happy-Path Initial Run
+
+**Objective:** Verify that the ELT pipeline successfully loads the five source CSV files, executes staging and mart SQL, handles the initial-run branch, and records the audit result.
+
+**Observed Results:**
+
+- **Raw loading:** Successfully loaded 5,212 rows across five tables:
+  - Orders: 2,412
+  - Payments: 2,228
+  - Customers: 405
+  - Products: 152
+  - Stores: 15
+- **Staging:** Executed 5 SQL statements. The staging tables contained 2,400 orders, 2,224 payments, 400 customers, 150 products, and 15 stores. Of the staged orders, 2,376 passed validation and 24 failed.
+- **Data marts:** Successfully processed six marts:
+  - `mart_daily_zone_revenue`: 454 rows
+  - `mart_category_margin`: 7 rows
+  - `mart_delivery_sla`: 16 rows
+  - `mart_payment_reconciliation`: 2,209 rows
+  - `mart_top_customers`: 10 rows
+  - `mart_elt_dq_summary`: 20 rows
+- **Incremental merge:** Correctly skipped because this was an initial run.
+- **Mart rebuild:** Correctly skipped because no incremental merge occurred.
+- **Audit:** Recorded the run with status `COMPLETED_WITH_DQ_FLAGS` and `loaded=5212`.
+
+**Result:** The ELT tasks completed successfully, including staging, mart generation, and audit execution. Data-quality failures were recorded, so this represents a successful pipeline execution with data-quality flags rather than a clean-data run.
+
+**Issue observed:** The audit task logged a warning: `Could not fetch task states: 'DagRun' object has no attribute 'get_task_instances'`. Although the audit completed, this warning should be investigated separately.
+
+**ELT task duration** 
+
+![](images/ELT_TASK_DURATION_EXP1.png)
+
+### Experiment 2: Re-run (Idempotency)
+
+Reran the ELT DAG in `initial` mode without cleaning DuckDB. The raw, staging, and mart table row counts remained unchanged, and raw tables did not accumulate duplicate rows. This indicates that the initial load refreshes existing data rather than appending duplicate records. **Result: Idempotency verified for row counts.**
+
+![](images/ELTEXP2.png)
+
+### Experiment 3: ELT Incremental Load
+
+Captured raw, staging, and mart row counts before and after triggering the ELT DAG in incremental mode. Compared the counts to verify that new orders were incorporated, existing orders were updated, and mart tables reflected the incremental changes without accumulating duplicate records.
+
+![](images/ELTEXP3.png)
+
+### Experiment 4: Missing Source File / Failure Handling
+
+**Objective:** Verify how the ELT pipeline handles a missing source CSV file.
+
+**Observed Results:**
+- The task failed with `AirflowFailException` because `products.csv` was not found at `/usr/local/airflow/include/data/nammamart/products.csv`.
+- The failed task was marked **red in the Airflow UI**, and the error message appeared in the task logs.
+- Downstream tasks were marked `upstream_failed`, except the ELT audit task, which still executed.
+- The pipeline failure was detected through the Airflow UI task status and the error log.
+
+**Result:** The pipeline correctly detected the missing source file and stopped dependent processing. The ELT audit task still ran, preserving audit execution despite the failure.
+
+**Retry configuration:** The DAG defines 3 retries with a 1-minute delay. However, the missing source file raises AirflowFailException, which bypasses retries. The task failed immediately, and downstream dependent tasks were marked upstream_failed, while the audit task still executed.
+
+![](images/ELTEXP4.png)
+
+### Experiment 5: Bad-Data Validation
+
+**Objective:** Test whether the ELT pipeline detects invalid order records.
+
+**Test data:** Five intentionally bad rows were appended to `include/data/nammamart/orders.csv`.
+
+| Order ID | Injected issue | Expected validation |
+|---|---|---|
+| `ORD-BAD-001` | Missing `order_timestamp` | Completeness |
+| `ORD-BAD-002` | Negative quantity (`-5`) and order amount (`-450.0`) | Validity |
+| `ORD-BAD-003` | Unknown `store_id` (`SID-999`) | Referential integrity |
+| `ORD-BAD-004` | Invalid `order_status` (`SHIPPED`) | Validity |
+| `ORD-BAD-005` | Future timestamp (`2027-06-15`) | Timeliness |
+
+**Observed Results:**
+
+- Staging processed 2,405 orders.
+- Orders passed validation: 2,378.
+- Orders failed validation: 27.
+- The previous run had 24 failed orders.
+
+**Conclusion:** The number of failed orders increased by three after adding five intentionally bad records. The individual records must be checked in staging to confirm which were rejected and which passed validation.
+
+**Data restoration:** The original CSV was backed up as `include/data/nammamart/orders.csv.bak` before adding the test records. Restore the original file after the experiment to prevent the test data from affecting subsequent runs.
+
 
 ### Five Pillars of Data Observability
 
