@@ -138,6 +138,7 @@ After initial run, [('dq_results',), ('etl_category_margin',), ('etl_daily_zone_
 
 **Summary:** 
 The incremental run added 150 rows to `etl_fact_orders` and created a second pipeline audit record. Dimension table counts remained unchanged. The daily zone revenue and data-quality tables increased, while payment reconciliation grew by 2,214 rows. These row counts demonstrate changes between runs but do not independently confirm data correctness or idempotency.
+
 ---
 
 ## Part B: ELT Pipeline
@@ -205,7 +206,7 @@ ELT is using separate raw/staging/mart tables.
 ![](images/TabledetailsInitialrunelt.png)
 
 
-## ELT Warehouse Validation: Initial vs Incremental Run
+### ELT Warehouse Validation: Initial vs Incremental Run
 
 | Table Name | Initial Run | Incremental Run | Change |
 |---|---:|---:|---:|
@@ -232,10 +233,11 @@ The initial ELT run created the raw, staging, and mart tables and recorded one p
 These results demonstrate changes in warehouse row counts between the two runs. Further checks of record contents and duplicate handling would be needed to confirm data correctness and idempotency.
 
 ### Image showing run IDs, DAG IDs, row counts and run status for pipelines.
-For ETL 
+
+**For ETL** 
 ![](images/pipeline_runs.png)
 
-For ELT
+**For ELT**
 ![](images/pipeline_runselt.png)
 ---
 
@@ -558,8 +560,11 @@ Forward Deployed Engineer
 ```sql
 -- ETL
 SELECT * FROM etl_daily_zone_revenue ORDER BY order_date, zone;
+```
+
 ![](images/ETLB1.png)
 
+```sql
 -- ELT
 SELECT * FROM mart_daily_zone_revenue ORDER BY order_date, zone;
 ```
@@ -567,11 +572,15 @@ SELECT * FROM mart_daily_zone_revenue ORDER BY order_date, zone;
 
 
 ### Q2: Revenue and gross margin by category
+
 ```sql
 -- ETL
 SELECT * FROM etl_category_margin ORDER BY total_revenue DESC;
+```
+
 ![](images/ETLB2.png)
 
+```sql
 -- ELT
 SELECT * FROM mart_category_margin ORDER BY total_revenue DESC;
 ```
