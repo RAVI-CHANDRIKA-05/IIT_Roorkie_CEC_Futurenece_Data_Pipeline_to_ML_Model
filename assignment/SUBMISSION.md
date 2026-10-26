@@ -235,10 +235,41 @@ These results demonstrate changes in warehouse row counts between the two runs. 
 ### Image showing run IDs, DAG IDs, row counts and run status for pipelines.
 
 **For ETL** 
+
 ![](images/pipeline_runs.png)
 
 **For ELT**
+
 ![](images/pipeline_runselt.png)
+
+---
+
+### No errors in Dag
+![](images/nodagerror.png)
+
+---
+
+## Part C: Scheduling Answers
+
+**1. Cron expression:**
+`0 9 * * 1-6` — runs at 9:00 AM every Monday through Saturday.
+![](images/cron.png)
+
+### ETL CRON Scheduler timings
+![](images/etlcron.png)
+
+### ELT CRON Scheduler timings
+![](images/eltcron.png)
+
+**2. UTC display in Airflow UI:**
+The run shows as **03:30 UTC** in the Airflow UI. IST is UTC+5:30, so 9:00 AM IST = 3:30 AM UTC.
+
+**3. What would happen if start_date were in UTC?**
+If we used `start_date=datetime(2026, 9, 1)` without a timezone, Airflow interprets it as UTC. The DAG would run at 9:00 AM UTC = 2:30 PM IST — five and a half hours after the leadership stand-up. The reports would miss the 9:30 AM SLA entirely.
+
+**4. What happens if Docker is off at 9 AM?**
+With `catchup=False`, the missed scheduled run is skipped. When Docker restarts, only the next scheduled run fires. This is correct for NammaMart: we want today’s fresh data, not a backlog of stale runs. If we needed to reprocess, we can manually trigger with the appropriate `run_mode`.
+
 ---
 
 ## Part D: Data Quality Dimensions
@@ -286,29 +317,6 @@ Populated every run by both pipelines. Accumulates across runs for trend analysi
 ### DQ Results for ELT Pipeline
 
 ![](images/dq_resultselt.png)
-
----
-
-## Part C: Scheduling Answers
-
-**1. Cron expression:**
-`0 9 * * 1-6` — runs at 9:00 AM every Monday through Saturday.
-![](images/cron.png)
-
-### ETL CRON Scheduler timings
-![](images/etlcron.png)
-
-### ELT CRON Scheduler timings
-![](images/eltcron.png)
-
-**2. UTC display in Airflow UI:**
-The run shows as **03:30 UTC** in the Airflow UI. IST is UTC+5:30, so 9:00 AM IST = 3:30 AM UTC.
-
-**3. What would happen if start_date were in UTC?**
-If we used `start_date=datetime(2026, 9, 1)` without a timezone, Airflow interprets it as UTC. The DAG would run at 9:00 AM UTC = 2:30 PM IST — five and a half hours after the leadership stand-up. The reports would miss the 9:30 AM SLA entirely.
-
-**4. What happens if Docker is off at 9 AM?**
-With `catchup=False`, the missed scheduled run is skipped. When Docker restarts, only the next scheduled run fires. This is correct for NammaMart: we want today’s fresh data, not a backlog of stale runs. If we needed to reprocess, we can manually trigger with the appropriate `run_mode`.
 
 ---
 
