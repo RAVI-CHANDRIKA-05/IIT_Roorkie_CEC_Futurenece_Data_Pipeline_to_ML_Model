@@ -483,55 +483,6 @@ Credentials like `SLACK_WEBHOOK_URL` are stored in **Airflow Variables** (access
 
 ---
 
-## Part G: Recommendation to the Client
-
-### Memo to Sameer (CTO, NammaMart)
-
-**Subject: ETL or ELT — Recommendation for NammaMart’s Data Pipeline**
-
-Sameer,
-
-After building and testing both pipelines side by side on the same September dataset, here is my recommendation.
-
-**Recommendation: Adopt ELT as the primary pipeline, with ETL-style guardrails for finance-critical tables.**
-
-#### Evidence from Our Pilot
-
-| Criterion | ETL | ELT | Winner |
-|---|---|---|---|
-| **Auditability** | Quarantine files on disk + warehouse tables. Tracing requires file system + DB access. | Every row in `raw_*`, DQ flags in `stg_*`, clean data in `mart_*`. All queryable with SQL. | ELT |
-| **Data quality guarantee** | Bad rows never reach the warehouse. Finance sees only validated data. | Bad rows are in raw/staging with `dq_status=FAIL`. Marts filter to `PASS` only. Same guarantee, different mechanism. | Tie |
-| **Ease of change** | Adding a check means modifying Python code, redeploying the DAG, and restarting Airflow. | Adding a check means editing a SQL file. No DAG change, no restart. | ELT |
-| **Debugging** | Must correlate CSV quarantine files with task logs and warehouse tables. | All data in one place: `raw_orders → stg_orders → mart_*`. One SQL session. | ELT |
-| **Incremental loads** | Python DELETE+INSERT works but loses the “before” state. | Raw preserves every version. Staging MERGE handles corrections. Full history. | ELT |
-| **Performance at 1000× scale** | pandas operates in single-node memory. At 2.4M orders/month, pandas would require chunking or migration to Spark. | DuckDB handles analytical SQL efficiently on a single node up to ~100M rows. Beyond that, migrate the same SQL to a cloud warehouse (Snowflake, BigQuery, Databricks SQL). | ELT |
-| **Cost** | DuckDB + Airflow (open source, free). pandas at scale needs larger machines. | DuckDB + Airflow (open source, free). SQL is portable to any cloud warehouse. | Tie |
-
-#### Why Not Pure ETL?
-
-ETL works perfectly for NammaMart’s current scale (2,400 orders/month). But it has three structural limitations:
-
-1. **No raw audit trail.** Once a row fails validation, it goes to a CSV file on disk. If that file is lost or the disk fills up, the audit trail is gone.
-2. **Python-bound transformations.** Every new business rule requires Python code changes, testing, and DAG redeployment. SQL changes in ELT are simpler and faster.
-3. **Scale ceiling.** pandas processes data in memory on a single machine. At 1,000× NammaMart’s current volume, this breaks. ELT’s SQL transforms run inside the database engine, which is designed for exactly this.
-
-#### Top 3 Risks of the Recommended ELT Design
-
-1. **Raw table growth.** ELT keeps every row forever. Without a retention policy and archival process, `raw_*` tables will grow indefinitely. **Mitigation:** Implement a 7-year retention policy with automated archival to cold storage.
-
-2. **SQL complexity for advanced transforms.** Some transformations (e.g., complex PII masking, ML-based anomaly detection) are harder to express in SQL. **Mitigation:** Use Python-based Airflow tasks for complex transforms that feed back into the warehouse, keeping a hybrid approach where needed.
-
-3. **DuckDB is single-node.** DuckDB is excellent for NammaMart’s current scale but cannot horizontally scale. If NammaMart grows to millions of daily orders, the warehouse engine must migrate. **Mitigation:** Write standard SQL that is portable to cloud warehouses. The migration would change the connection string, not the business logic.
-
-#### Final Word
-
-For NammaMart today: **ELT with DuckDB.** It’s simpler to operate, easier to audit, and the SQL is portable when you outgrow a single machine. Keep the ETL pipeline as a reference for the finance team’s strict “no-bad-rows” requirement — but serve daily operations from the ELT marts.
-
-Ravi Chandrika
-Forward Deployed Engineer
-
----
-
 ## Part F: Observability Tests
 
 *(To be completed after running the 10 experiments)*
@@ -648,7 +599,54 @@ Captured raw, staging, and mart row counts before and after triggering the ELT D
 | **Lineage** | ETL: staging JSON + quarantine CSVs + warehouse tables. ELT: raw → staging → mart, all in SQL. ELT lineage is stronger. | Strong (ELT) |
 
 ---
+## Part G: Recommendation to the Client
 
+### Memo to Sameer (CTO, NammaMart)
+
+**Subject: ETL or ELT — Recommendation for NammaMart’s Data Pipeline**
+
+Sameer,
+
+After building and testing both pipelines side by side on the same September dataset, here is my recommendation.
+
+**Recommendation: Adopt ELT as the primary pipeline, with ETL-style guardrails for finance-critical tables.**
+
+#### Evidence from Our Pilot
+
+| Criterion | ETL | ELT | Winner |
+|---|---|---|---|
+| **Auditability** | Quarantine files on disk + warehouse tables. Tracing requires file system + DB access. | Every row in `raw_*`, DQ flags in `stg_*`, clean data in `mart_*`. All queryable with SQL. | ELT |
+| **Data quality guarantee** | Bad rows never reach the warehouse. Finance sees only validated data. | Bad rows are in raw/staging with `dq_status=FAIL`. Marts filter to `PASS` only. Same guarantee, different mechanism. | Tie |
+| **Ease of change** | Adding a check means modifying Python code, redeploying the DAG, and restarting Airflow. | Adding a check means editing a SQL file. No DAG change, no restart. | ELT |
+| **Debugging** | Must correlate CSV quarantine files with task logs and warehouse tables. | All data in one place: `raw_orders → stg_orders → mart_*`. One SQL session. | ELT |
+| **Incremental loads** | Python DELETE+INSERT works but loses the “before” state. | Raw preserves every version. Staging MERGE handles corrections. Full history. | ELT |
+| **Performance at 1000× scale** | pandas operates in single-node memory. At 2.4M orders/month, pandas would require chunking or migration to Spark. | DuckDB handles analytical SQL efficiently on a single node up to ~100M rows. Beyond that, migrate the same SQL to a cloud warehouse (Snowflake, BigQuery, Databricks SQL). | ELT |
+| **Cost** | DuckDB + Airflow (open source, free). pandas at scale needs larger machines. | DuckDB + Airflow (open source, free). SQL is portable to any cloud warehouse. | Tie |
+
+#### Why Not Pure ETL?
+
+ETL works perfectly for NammaMart’s current scale (2,400 orders/month). But it has three structural limitations:
+
+1. **No raw audit trail.** Once a row fails validation, it goes to a CSV file on disk. If that file is lost or the disk fills up, the audit trail is gone.
+2. **Python-bound transformations.** Every new business rule requires Python code changes, testing, and DAG redeployment. SQL changes in ELT are simpler and faster.
+3. **Scale ceiling.** pandas processes data in memory on a single machine. At 1,000× NammaMart’s current volume, this breaks. ELT’s SQL transforms run inside the database engine, which is designed for exactly this.
+
+#### Top 3 Risks of the Recommended ELT Design
+
+1. **Raw table growth.** ELT keeps every row forever. Without a retention policy and archival process, `raw_*` tables will grow indefinitely. **Mitigation:** Implement a 7-year retention policy with automated archival to cold storage.
+
+2. **SQL complexity for advanced transforms.** Some transformations (e.g., complex PII masking, ML-based anomaly detection) are harder to express in SQL. **Mitigation:** Use Python-based Airflow tasks for complex transforms that feed back into the warehouse, keeping a hybrid approach where needed.
+
+3. **DuckDB is single-node.** DuckDB is excellent for NammaMart’s current scale but cannot horizontally scale. If NammaMart grows to millions of daily orders, the warehouse engine must migrate. **Mitigation:** Write standard SQL that is portable to cloud warehouses. The migration would change the connection string, not the business logic.
+
+#### Final Word
+
+For NammaMart today: **ELT with DuckDB.** It’s simpler to operate, easier to audit, and the SQL is portable when you outgrow a single machine. Keep the ETL pipeline as a reference for the finance team’s strict “no-bad-rows” requirement — but serve daily operations from the ELT marts.
+
+Ravi Chandrika
+Forward Deployed Engineer
+
+---
 ## Business Questions — SQL Queries
 
 *(Run these on the warehouse after a successful pipeline run)*
